@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Creating R Packages</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Keith McNulty and Jiena McLellan" />
+    <script src="libs/htmlwidgets/htmlwidgets.js"></script>
+    <link href="libs/faq/style.css" rel="stylesheet" />
+    <script src="libs/faq-binding/faq.js"></script>
+    <link rel="stylesheet" href="mckpam.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Creating R Packages
+## with devtools
+### Keith McNulty and Jiena McLellan
+
+---
+
+
+
+
+class: center, middle, r-logo
+
+# Welcome to the R Community
+
+&lt;img src="www/R_welcome.jpg" alt="Example" width="350" height="500"&gt;
+&lt;img src="www/Welcome2.png" alt="Example2" width="380" height="400"&gt;
+
+
+---
+class: center, middle, r-logo
+
+# Why R Packages?
+
+### A simple way to distribute R code and documentation
+
+
+--
+### An easier way to keep track of R functions that you write and reuse
+
+
+--
+### A great way to help other R users
+
+
+--
+### *"If you will do it more than once, write a function.  If more than you will do it more than once, develop a package"* - Some clever person
+
+---
+class: left, top, r-logo
+
+## Examples
+
+
+```r
+library(faq)
+df &lt;- data.frame(
+  question = c("Question1", "Question2"),
+  answer = c("answer for question1", 
+             "question2 answer")
+)
+faq::faq(data = df, elementId = "faq", faqtitle = "")
+```
+
+<div id="faq" style="width:100%;height:288px;" class="faq html-widget"></div>
+<script type="application/json" data-for="faq">{"x":{"data":{"question":["Question1","Question2"],"answer":["answer for question1","question2 answer"]},"faqtitle":""},"evals":[],"jsHooks":[]}</script>
+
+---
+class: left, top, r-logo
+
+## Important resources for package creation
+
+&lt;p style="text-align:center;"&gt;
+&lt;img src="www/toolkit.jpg" alt="Toolkit for Package Development" width="450" height="300"&gt;
+&lt;/p&gt;
+
+* The package bible: [R Packages by Hadley Wickham](http://r-pkgs.had.co.nz/)
+* The `devtools` package for managing the package development workflow
+* The `usethis` package to make it easier to use things in your development workflow
+* The `testthat` package for unit testing your functions (optional, but highly recommended)
+
+---
+class: left, top, r-logo
+
+## We've created a minimal package example on Github to demonstrate
+&lt;img src="www/isawesome-github.png" alt="isawesome Github repo" width="700" height="350"&gt;
+
+https://github.com/keithmcnulty/isawesome
+
+```r
+devtools::install_github("keithmcnulty/isawesome")
+```
+
+---
+class: center, middle, r-logo
+
+# Get Started
+&lt;img src="www/started.jpeg" alt="Example_start" width="450" height="500"&gt;
+
+---
+
+class: center, middle, r-logo
+
+# Step a): Set up package project
+
+Install the **devtools** package
+
+&lt;img src="www/Project_setup.png" alt="Example_setup" width="450" height="400"&gt;
+
+---
+
+class: left, top, r-logo
+
+## Minimal project infrastructure
+
+&lt;img src="www/project-infrastructure.png" alt="Minimap project infrastructure" width="450" height="200"&gt;
+
+
+* `DESCRIPTION` lists package details, description, authors, dependencies
+* `NAMESPACE` is used for listing which functions are exported versus hidden, and also imported functions from other packages
+* `R` directory is where code for package functions is written
+* `man` is for help files - usually automatically generated.
+
+---
+class: left, top, r-logo
+
+## Example `DESCRIPTION` file
+
+```
+Package: isawesome
+Type: Package
+Title: Tells people they are awesome
+Version: 0.1.0
+Author: c(
+  person(given = "Jiena",
+         family = "McLellan",
+         role = c("aut", "cre"),
+         email = "jienagu90@gmail.com")
+  person(given = "Keith",
+         family = "McNulty",
+         role = c("ctb"),
+         email = "keith.mcnulty@gmail.com"))
+Maintainer: Jiena McLellan &lt;jienagu90@gmail.com&gt;
+Description: This package creates functions which pay you compliments.  
+  It is created as a minimal example for a training on R package creation.
+License: CC0
+Imports:
+  magrittr
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
+```
+
+---
+class: left, top, r-logo
+
+## Example `NAMESPACE` file
+
+```
+exportPattern("^[:a-z:]+") # any function whose name starts with a-z
+importFrom("magrittr", "%&gt;%") # import the pipe operator from magrittr
+```
+
+
+
+---
+
+class: center, middle, r-logo
+
+# Step b): Write functions
+
+### Give a function an evocative name that makes your code easier to understand
+
+--
+### As requirements change, you only need to update code
+
+--
+### Eliminate the chance of making incidental mistakes when you copy and paste
+
+
+---
+class: left, top, r-logo
+
+## Example exported function
+
+
+```r
+# this function will be exported
+
+isawesome &lt;- function(name = "Someone", alternative = FALSE, 
+                      return_message = TRUE) {
+  if (!alternative) {
+    if (return_message) {
+      paste(name, "is awesome!") %&gt;%
+        message()
+    } else {
+      paste(name, "is awesome!")
+    }
+  } else {
+    if (return_message) {
+      paste(name, .random_compliment()) %&gt;%
+        message()
+    } else {
+      paste(name, .random_compliment())
+    }
+  }
+}
+```
+
+---
+class: left, top, r-logo
+
+## Example internal function
+
+
+```r
+# this function is internal
+
+.random_compliment &lt;- function() {
+  sample(c("is incredible!", "is amazing!", "rocks!"), 1)
+}
+```
+
+---
+
+class: center, middle, r-logo
+
+# Step c): Document
+
+### Use `roxygen` commenting above exported function 
+
+--
+
+### Write comments as you code
+
+--
+### Include a README file with basic information
+
+--
+
+### Use vignettes for more substantial guidance
+
+--
+### Write error messages that provide solutions 
+
+
+---
+class: left, top, r-logo
+
+## Example `roxygen` commenting
+
+
+```roxygen
+#' Gives compliments
+#'
+#' @description
+#' Displays a message that compliments the input.
+#'
+#' @param name A character string of the person or object to be complimented
+#' @param alternative A logical indicating whether alternatives to 'is awesome' should be used
+#' @param return_message A logical indicating whether a message should be returned.  If FALSE a character string will be returned.
+#' @return A message that pays a compliment.
+#'
+#' @examples
+#' isawesome("Randy 'Macho Man' Savage")
+#' isawesome("Hulk Hogan", alternative = TRUE)
+```
+
+* Running `devtools::document()` will turn these into manual pages (in `man` folder)
+* Examples will be run during package check - they need to work
+* For CRAN submission examples need to run in less than 5s
+
+---
+class: left, top, r-logo
+
+## Creating a `README` or vignettes
+
+* `README.md` is useful for general overview of what's in the package
+* vignettes can be used to demonstrate the functionality in details
+* `usethis::use_readme_rmd()` creates an RMarkdown where you can create your readme and knit it to `README.md`
+* `usethis::use_vignette(name)` sets up RMarkdown documentation for vignette with name provided
+
+---
+class: center, middle, r-logo
+
+# Step d): Unit test
+
+### Time consuming but product saving
+
+--
+### Any Bugs Are Found Easily and Quicker
+
+---
+class: left, top, r-logo
+
+## Example: test file
+
+* `usethis::use_testthat()` sets up testing in your package
+* `usethis::use_test("isawesome")` creates `test-isawesome.R`
+
+
+```r
+string &lt;- stringi::stri_rand_strings(n = 1, length = sample(1:20, 1), pattern = "[A-Za-z0-9]")
+
+test_that("isawesome() produces the expected output", {
+  isawesome(string, return_message = FALSE) %&gt;%
+    testthat::expect_equal(paste(string, "is awesome!"))
+})
+```
+
+---
+class: center, middle, r-logo
+
+# Step e): Build and check
+
+### Check package builds OK (incl documentation and tests)
+
+--
+
+### Integrated build checks on Github using Github Actions (CI)
+
+--
+
+### Windows OS testing via CRAN servers
+
+---
+class: left, top, r-logo
+
+## Useful build and check tools
+
+* `devtools::check()` performs check on your system
+* `usethis::use_github_actions()` will set up for CI R-CMD check in (public) Github for Unix-based systems
+* `devtools::check_win_release()` tests the package on CRAN's Window's servers (emails test results).  
+* CAUTION:  The last two are not suitable for packages containing confidential material.
+
+---
+class: center, middle, r-logo
+# Step f): Submit to CRAN
+
+### Any package can go on CRAN if it works and is not dangerous 
+
+--
+
+### Aim for 0 ERRORS, 0 WARNINGS, 0 NOTES (last one not always possible)
+
+--
+
+### Think about version numbering (usually start with 0.1.0)
+
+--
+
+### New packages will always be manually checked (5-10 working days)
+
+--
+
+### Updates are often immediately approved
+
+---
+class: left, top, r-logo
+
+##  CRAN Submission process
+
+1.  Use `devtools::release()` to do all checks and submit to CRAN.
+2.  Respond to the email to confirm submission.
+3.  Wait to see if it is auto-approved (only for package updates)
+4.  If manually checked, wait to hear from CRAN team.
+5.  Use `cran-comments.md` file to communicate with CRAN team if changes needed.
+6.  Some fixes are really tiny, like punctuation and capitalization rules.
+7.  Try to avoid debating with the CRAN team - just make the fix.
+8.  Congrats - you are on CRAN!
+9.  Tweet and blog about your package to let people know!
+10. If you are feeling creative, use the `hexSticker` package to create a hex sticker for your package
+
+---
+class: middle, r-logo
+
+## Create hex logo
+
+* Use template: https://emitanaka.org/post/hexsticker/
+* Use `hexSticker` package
+
+
+```r
+library(hexSticker)
+s &lt;- sticker(~plot(cars, cex=.5, cex.axis=.5, mgp=c(0,.3,0), xlab="", ylab=""),
+             package="hexSticker", p_size=8, s_x=.8, s_y=.6, s_width=1.4, s_height=1.2,
+             h_fill="#f9690e", h_color="#f39c12",
+             filename="baseplot.png")
+```
+
+&lt;img src="www/baseplot.png" alt="baseplot" width="250" height="280"&gt;
+
+
+---
+class: center, middle, r-logo
+
+# Thank you and happy package building
+
+&lt;img src="www/pam_hex.png" alt="PAM contributions to CRAN" width="750" height="500"&gt;
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
